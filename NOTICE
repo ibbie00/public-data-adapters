@@ -1,0 +1,29 @@
+public-data-adapters
+Copyright 2026 Takibi (노변정담)
+
+This product includes software developed at Takibi (https://takibi.pub).
+
+The adapters in this package were extracted from the Takibi context-enrichment
+layer. The upstream product policy layer (queue planning, operator governance,
+database access, LLM calls, rate-limit ledgers) is intentionally not included;
+callers inject those concerns.
+
+Bundled data files under src/data/:
+
+- context-stat-tables/ecos.json
+  Bank of Korea ECOS statistic table index.
+  Source: https://ecos.bok.or.kr/api/StatisticTableList
+- context-work-names/games.json
+  Video game names derived from Wikidata (Q7889 video games, CC0).
+  Source: https://query.wikidata.org/
+- context-region/districts.json
+  Korean administrative district codes and names.
+- weather/bot-account.json, weather/regions.json, weather/strings.json
+  Weather adapter configuration, region table, and display strings.
+
+Each adapter queries a public API operated by a third party (for example the
+National Law Information Center, the National Assembly, the Bank of Korea, the
+National Election Commission, the Financial Supervisory Service, or the Korea
+Meteorological Administration). Use of those APIs is governed by the respective
+operator's terms and by the credentials you supply. This package claims no
+rights in the data it fetches.

@@ -1,0 +1,11 @@
+{
+  "_note": "Regions for the DAILY 'tomorrow's sky' digest. Korean display names live here (data, not .ts source, per the i18n no-Korean-in-source rule). `owmQuery` is the representative city used for the OpenWeatherMap forecast lookup. The order in this file is irrelevant: the published digest shuffles regions per day with NO weighting (deterministic from the date, so it is stable within a day but no region is ever listed first by default). Kept deliberately few (6 broad regions) so the evening digest stays a calm read, not a wall of cities.",
+  "regions": [
+    { "key": "capital", "ko": "수도권", "owmQuery": "Seoul,KR" },
+    { "key": "gangwon", "ko": "강원", "owmQuery": "Gangneung,KR" },
+    { "key": "chungcheong", "ko": "충청", "owmQuery": "Daejeon,KR" },
+    { "key": "honam", "ko": "전라", "owmQuery": "Gwangju,KR" },
+    { "key": "yeongnam", "ko": "경상", "owmQuery": "Busan,KR" },
+    { "key": "jeju", "ko": "제주", "owmQuery": "Jeju,KR" }
+  ]
+}

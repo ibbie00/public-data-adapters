@@ -1,0 +1,8 @@
+{
+  "_note": "House account for the weather bot (하늘지기 / skykeeper). The handle is a FEDERATED identity and hard to change once created: confirm before provisioning. All other fields are editable later via an idempotent upsert.",
+  "handle": "skykeeper",
+  "displayName": "하늘지기",
+  "name": "하늘지기",
+  "bio": "모닥불 곁에서 하늘을 살피는 이. 거센 날엔 먼저 알리고, 잔잔한 날엔 조용히 곁에 있어요.",
+  "locale": "ko"
+}

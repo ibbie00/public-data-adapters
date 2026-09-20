@@ -1,0 +1,50 @@
+{
+  "name": "public-data-adapters",
+  "version": "0.1.0",
+  "description": "Source-grounded adapters for public data APIs: Korean law, bills, statistics, elections, corporate disclosures, real estate, weather, and media/music/game catalogs. Normalizes external responses into reusable context assets with provenance, freshness, and privacy guards. Extracted from Takibi.",
+  "license": "Apache-2.0",
+  "author": "Takibi (노변정담)",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ibbie00/public-data-adapters.git"
+  },
+  "homepage": "https://github.com/ibbie00/public-data-adapters",
+  "keywords": [
+    "public-data",
+    "open-data",
+    "korea",
+    "context",
+    "adapters",
+    "law",
+    "statistics",
+    "election",
+    "opendart",
+    "kosis",
+    "ecos"
+  ],
+  "type": "commonjs",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE",
+    "NOTICE"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json && node scripts/copy-assets.mjs",
+    "typecheck": "tsc --noEmit",
+    "test": "node --import tsx --test \"tests/**/*.test.ts\""
+  },
+  "dependencies": {
+    "fast-xml-parser": "^5.10.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "tsx": "^4.21.0",
+    "typescript": "^5.7.0"
+  }
+}

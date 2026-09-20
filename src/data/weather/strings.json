@@ -1,0 +1,43 @@
+{
+  "_note": "Runtime strings for the weather bot (하늘지기), kept as data so CJK content stays out of .ts source. The composed post is always built in Korean (the bot's source locale). The trailing block, sourceByLocale plus footerByLocale, is load-bearing: it is the data-attribution required by the source's terms of use (KMA / OpenWeatherMap) plus the bot signature, so translate.ts strips the Korean trailing block, machine-translates the body, then re-attaches the canonical target-locale source line + footer. That GUARANTEES the attribution and signature survive every language and are never dropped or distorted by the model. machineTranslationNote is appended last.",
+  "dailyHeader": "✦ 내일의 하늘",
+  "dailyNote": {
+    "ko": "내일 예보예요. 하늘 사정에 따라 바뀔 수 있어요.",
+    "en": "Tomorrow's outlook: it may change as the skies do.",
+    "ja": "明日の見通しです。空の都合で変わることがあります。",
+    "zh": "这是明天的预报，可能随天气变化而调整。"
+  },
+  "advisoryHeaderByLifecycle": {
+    "ISSUED": "⚠ 기상특보",
+    "UPDATED": "⚠ 기상특보 (변경)",
+    "LIFTED": "기상특보 해제"
+  },
+  "advisoryZonesLabel": "발효 지역",
+  "sourceByLocale": {
+    "kma": {
+      "ko": "출처: 기상청",
+      "en": "Source: Korea Meteorological Administration (KMA)",
+      "ja": "出典: 韓国気象庁（KMA）",
+      "zh": "来源：韩国气象厅（KMA）"
+    },
+    "owm": {
+      "ko": "자료: OpenWeatherMap",
+      "en": "Data: OpenWeatherMap",
+      "ja": "データ: OpenWeatherMap",
+      "zh": "数据：OpenWeatherMap"
+    }
+  },
+  "footerByLocale": {
+    "ko": "하늘지기. 거센 날엔 먼저 알리고, 잔잔한 날엔 곁에 있어요.",
+    "en": "skykeeper. A heads-up when the weather turns, quiet company when it's calm.",
+    "ja": "空守り。荒れる日は先に、穏やかな日はそっとそばに。",
+    "zh": "守天。天气转坏时先提醒你，平静时静静相伴。"
+  },
+  "machineTranslationNote": {
+    "ko": "(기계번역)",
+    "en": "(machine translation)",
+    "ja": "(機械翻訳)",
+    "zh": "(机器翻译)"
+  },
+  "advisoryLiftedHints": ["해제"]
+}
