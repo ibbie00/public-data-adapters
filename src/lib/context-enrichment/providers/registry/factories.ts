@@ -4,6 +4,8 @@ import {
   isEnabledEnv
 } from "../../config";
 import type { ProviderFetchLike } from "../fetch-with-retry";
+import type { MediaTitleLlmFallback } from "../media-catalog-api/media-title-fallback";
+import type { ReserveExtraNewsCall } from "../news-media-api/types";
 import type {
   ContextProviderType,
   ContextResearchProvider
@@ -36,39 +38,54 @@ import {
   hasStatisticsCredential
 } from "./credentials";
 
+// How a caller wires its own infrastructure into the adapters. Everything is
+// optional: an omitted seam falls back to the package default (plain fetch, no
+// extra-call budget, no LLM title extraction).
+export type ProviderInjection = {
+  fetchImpl?: ProviderFetchLike;
+  reserveExtraCall?: ReserveExtraNewsCall;
+  titleFallback?: MediaTitleLlmFallback;
+};
+
 type ProviderFactoryRule = {
-  create: (env: NodeJS.ProcessEnv) => ContextResearchProvider[];
+  create: (
+    env: NodeJS.ProcessEnv,
+    injection: ProviderInjection
+  ) => ContextResearchProvider[];
   providerType: ContextProviderType;
 };
 
-function getPolicyReportProviders(env: NodeJS.ProcessEnv) {
+function getPolicyReportProviders(env: NodeJS.ProcessEnv, injection: ProviderInjection) {
   const providers: ContextResearchProvider[] = [];
 
   if (hasNaboPublicationCredential(env) || !hasPolicyReportCredential(env)) {
-    providers.push(createNaboPublicationApiProvider({ providerType: "policy_report" }));
+    providers.push(createNaboPublicationApiProvider({
+      fetchImpl: injection.fetchImpl,
+      providerType: "policy_report"
+    }));
   }
   if (hasNkisPolicyCredential(env)) {
-    providers.push(createNkisPolicyApiProvider());
+    providers.push(createNkisPolicyApiProvider({ fetchImpl: injection.fetchImpl }));
   }
 
   return providers;
 }
 
-function getStatisticsProviders(env: NodeJS.ProcessEnv) {
+function getStatisticsProviders(env: NodeJS.ProcessEnv, injection: ProviderInjection) {
   const providers: ContextResearchProvider[] = [];
   const hasAnyStatisticsCredential = hasStatisticsCredential(env);
 
   if (env.OPEN_NABOSTAT_API_KEY?.trim() || !hasAnyStatisticsCredential) {
-    providers.push(createNabostatApiProvider());
+    providers.push(createNabostatApiProvider({ fetchImpl: injection.fetchImpl }));
   }
   if (env.OPEN_KOSIS_API_KEY?.trim()) {
-    providers.push(createKosisApiProvider());
+    providers.push(createKosisApiProvider({ fetchImpl: injection.fetchImpl }));
   }
   if (env.OPEN_ECOS_API_KEY?.trim() || env.ECOS_API_KEY?.trim()) {
-    providers.push(createEcosApiProvider());
+    providers.push(createEcosApiProvider({ fetchImpl: injection.fetchImpl }));
   }
   if (env.SGIS_CONSUMER_KEY?.trim() && env.SGIS_CONSUMER_SECRET?.trim()) {
-    providers.push(createSgisApiProvider());
+    providers.push(createSgisApiProvider({ fetchImpl: injection.fetchImpl }));
   }
   // ⚠️ Commercial-area (SEMAS) is opt-in, and the key alone no longer turns it on.
   //
@@ -87,7 +104,7 @@ function getStatisticsProviders(env: NodeJS.ProcessEnv) {
     isEnabledEnv(env.CONTEXT_PROVIDER_COMMERCIAL_AREA_ENABLED) &&
     (env.SEMAS_STORE_API_KEY?.trim() || env.SEMAS_API_KEY?.trim())
   ) {
-    providers.push(createSemasApiProvider());
+    providers.push(createSemasApiProvider({ fetchImpl: injection.fetchImpl }));
   }
 
   return providers;
@@ -95,7 +112,9 @@ function getStatisticsProviders(env: NodeJS.ProcessEnv) {
 
 const CONTEXT_PROVIDER_FACTORY_RULES: ProviderFactoryRule[] = [
   {
-    create: () => [createOpenAssemblyApiProvider()],
+    create: (_env, injection) => [
+      createOpenAssemblyApiProvider({ fetchImpl: injection.fetchImpl })
+    ],
     providerType: "bill"
   },
   {
@@ -127,14 +146,16 @@ const CONTEXT_PROVIDER_FACTORY_RULES: ProviderFactoryRule[] = [
     // Turning it back on needs a path that can NAME the election: narrowing the code list
     // by date/type, or matching a year taken from the post. Until then it is noise with an
     // official-looking badge, which is worse than nothing.
-    create: (env) =>
+    create: (env, injection) =>
       isEnabledEnv(env.CONTEXT_PROVIDER_ELECTION_DETAIL_ENABLED)
-        ? [createNecElectionApiProvider()]
+        ? [createNecElectionApiProvider({ fetchImpl: injection.fetchImpl })]
         : [],
     providerType: "election"
   },
   {
-    create: () => [createGameMetadataApiProvider()],
+    create: (_env, injection) => [
+      createGameMetadataApiProvider({ fetchImpl: injection.fetchImpl })
+    ],
     providerType: "game_metadata"
   },
   {
@@ -142,15 +163,27 @@ const CONTEXT_PROVIDER_FACTORY_RULES: ProviderFactoryRule[] = [
     providerType: "media_coverage"
   },
   {
-    create: () => [createMediaCatalogApiProvider()],
+    create: (_env, injection) => [
+      createMediaCatalogApiProvider({
+        fetchImpl: injection.fetchImpl,
+        titleFallback: injection.titleFallback
+      })
+    ],
     providerType: "media_catalog"
   },
   {
-    create: () => [createMusicMetadataApiProvider()],
+    create: (_env, injection) => [
+      createMusicMetadataApiProvider({ fetchImpl: injection.fetchImpl })
+    ],
     providerType: "music_metadata"
   },
   {
-    create: () => [createNewsMediaApiProvider()],
+    create: (_env, injection) => [
+      createNewsMediaApiProvider({
+        fetchImpl: injection.fetchImpl,
+        reserveExtraCall: injection.reserveExtraCall
+      })
+    ],
     providerType: "news_media"
   },
   {
@@ -182,12 +215,17 @@ const CONTEXT_PROVIDER_FACTORY_RULES: ProviderFactoryRule[] = [
     // name both a property type and a transaction type or the provider declines.
     //
     // What is left is the ordinary provider flag, same as every other entry here.
-    create: () => [createRealEstateApiProvider()],
+    create: (_env, injection) => [
+      createRealEstateApiProvider({ fetchImpl: injection.fetchImpl })
+    ],
     providerType: "real_estate"
   },
   {
-    create: () => [
-      createNaboPublicationApiProvider({ providerType: "legislative_library" })
+    create: (_env, injection) => [
+      createNaboPublicationApiProvider({
+        fetchImpl: injection.fetchImpl,
+        providerType: "legislative_library"
+      })
     ],
     providerType: "legislative_library"
   },
@@ -196,12 +234,16 @@ const CONTEXT_PROVIDER_FACTORY_RULES: ProviderFactoryRule[] = [
     providerType: "statistics"
   },
   {
-    create: (env) =>
-      hasPublicInstitutionCredential(env) ? [createSeoulOpenDataApiProvider()] : [],
+    create: (env, injection) =>
+      hasPublicInstitutionCredential(env)
+        ? [createSeoulOpenDataApiProvider({ fetchImpl: injection.fetchImpl })]
+        : [],
     providerType: "public_institution"
   },
   {
-    create: () => [createWeatherEnvironmentApiProvider()],
+    create: (_env, injection) => [
+      createWeatherEnvironmentApiProvider({ fetchImpl: injection.fetchImpl })
+    ],
     providerType: "weather_environment"
   }
 ];
@@ -211,7 +253,10 @@ const CONTEXT_PROVIDER_FACTORY_RULES: ProviderFactoryRule[] = [
 const directOutboundFetch = ((url: URL, init?: RequestInit) =>
   fetch(url, init)) as ProviderFetchLike;
 
-export function getContextResearchProviders(env: NodeJS.ProcessEnv = process.env): ContextResearchProvider[] {
+export function getContextResearchProviders(
+  env: NodeJS.ProcessEnv = process.env,
+  injection: ProviderInjection = {}
+): ContextResearchProvider[] {
   const providers: ContextResearchProvider[] = [];
   const lawProvider = getLawContextProvider(env);
 
@@ -219,13 +264,19 @@ export function getContextResearchProviders(env: NodeJS.ProcessEnv = process.env
     providers.push(createLegalizeKrProvider());
   }
   if (lawProvider === "national-law-api") {
-    providers.push(createNationalLawApiProvider({ providerType: "law" }));
-    providers.push(createNationalLawApiProvider({ providerType: "ordinance" }));
+    providers.push(createNationalLawApiProvider({
+      fetchImpl: injection.fetchImpl,
+      providerType: "law"
+    }));
+    providers.push(createNationalLawApiProvider({
+      fetchImpl: injection.fetchImpl,
+      providerType: "ordinance"
+    }));
   }
 
   for (const rule of CONTEXT_PROVIDER_FACTORY_RULES) {
     if (isContextProviderEnabled(rule.providerType, env)) {
-      providers.push(...rule.create(env));
+      providers.push(...rule.create(env, injection));
     }
   }
 

@@ -47,6 +47,17 @@ Every adapter is **off by default**. Each provider type has its own feature flag
 npm install public-data-adapters
 ```
 
+Until the package is on the npm registry, install it from the repository:
+
+```bash
+npm install github:ibbie00/public-data-adapters#v0.1.0
+```
+
+The repository install runs the package's `prepare` script, which builds `dist/`
+with your local toolchain (TypeScript is a devDependency). If your installer runs
+with `--ignore-scripts`, the build is skipped and the package has no output:
+either allow scripts or run `npm run build` inside the package once.
+
 Node.js 20 or later. The build output is CommonJS with type declarations.
 
 ## Quick start
@@ -64,7 +75,9 @@ const env = {
 const providers = getContextResearchProviders(env);
 const law = providers.find((provider) => provider.providerType === "law");
 
-const results = await law.search("청탁금지법");
+// Search calls take the env again: providers read flags and credentials from
+// the env you hand them at call time, never from a captured global.
+const results = await law.search("청탁금지법", { env });
 const asset = law.normalize(results[0]);
 law.validate(asset);
 console.log(asset.sourceName, asset.sourceUrl, asset.checkedAt);
@@ -86,9 +99,24 @@ The package never reaches for a global client. The three seams are:
 
 | seam | where | why |
 | --- | --- | --- |
-| Outbound fetch | `fetchImpl` in provider options or per search call | route through your egress proxy, add instrumentation, or pin DNS |
+| Outbound fetch | `fetchImpl` in provider options, per search call, or the registry injection | route through your egress proxy, add instrumentation, or pin DNS |
 | Extra-call budget | `reserveExtraCall` on `news_media` | that provider is a fallback chain; each additional API call is metered |
 | LLM title extraction | `titleFallback` on `media_catalog` | the rule-based title extractor cannot read a bare title in free text; an LLM can, but the client is yours, not ours |
+
+All three can be wired once through the registry:
+
+```ts
+import { getContextResearchProviders } from "public-data-adapters";
+
+const providers = getContextResearchProviders(env, {
+  fetchImpl: myProxiedFetch, // used by every network adapter
+  reserveExtraCall: () => myBudgetLedger.reserve("news_media"),
+  titleFallback: {
+    enabled: (env) => env.MY_TITLE_LLM_ENABLED === "1",
+    extract: async (text) => myLocalLlm.extractTitle(text)
+  }
+});
+```
 
 The default outbound path is a plain `fetch`. If you inject nothing, no proxy,
 no LLM, and no ledger is involved, and fallback chains stop at the first API

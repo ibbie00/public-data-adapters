@@ -25,6 +25,32 @@
   "type": "commonjs",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./context-enrichment": {
+      "types": "./dist/lib/context-enrichment/index.d.ts",
+      "default": "./dist/lib/context-enrichment/index.js"
+    },
+    "./context-enrichment/*": {
+      "types": "./dist/lib/context-enrichment/*.d.ts",
+      "default": "./dist/lib/context-enrichment/*.js"
+    },
+    "./providers/*": {
+      "types": "./dist/lib/context-enrichment/providers/*.d.ts",
+      "default": "./dist/lib/context-enrichment/providers/*.js"
+    },
+    "./nec-election": {
+      "types": "./dist/lib/external/nec-election/index.d.ts",
+      "default": "./dist/lib/external/nec-election/index.js"
+    },
+    "./weather": {
+      "types": "./dist/lib/weather/source-kma.d.ts",
+      "default": "./dist/lib/weather/source-kma.js"
+    }
+  },
   "files": [
     "dist",
     "README.md",
@@ -36,6 +62,7 @@
   },
   "scripts": {
     "build": "tsc -p tsconfig.build.json && node scripts/copy-assets.mjs",
+    "prepare": "npm run build",
     "typecheck": "tsc --noEmit",
     "test": "node --import tsx --test \"tests/**/*.test.ts\""
   },
