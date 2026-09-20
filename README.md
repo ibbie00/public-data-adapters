@@ -47,18 +47,8 @@ Every adapter is **off by default**. Each provider type has its own feature flag
 npm install public-data-adapters
 ```
 
-Until the package is on the npm registry, install it from the repository:
-
-```bash
-npm install github:ibbie00/public-data-adapters#v0.1.0
-```
-
-The repository install runs the package's `prepare` script, which builds `dist/`
-with your local toolchain (TypeScript is a devDependency). If your installer runs
-with `--ignore-scripts`, the build is skipped and the package has no output:
-either allow scripts or run `npm run build` inside the package once.
-
 Node.js 20 or later. The build output is CommonJS with type declarations.
+Published at https://www.npmjs.com/package/public-data-adapters.
 
 ## Quick start
 
